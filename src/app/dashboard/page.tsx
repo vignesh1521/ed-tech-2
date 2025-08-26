@@ -15,7 +15,8 @@ export default function Dashboard() {
         image: string;
     };
 
-    const { user, loading } = useAuth();
+    const { user } = useAuth();
+    const [loading, setLoaing] = useState(true);
     const [courses, setCourses] = useState<Course[]>([])
     const router = useRouter();
 
@@ -56,13 +57,18 @@ export default function Dashboard() {
 
                 if (result.errors) {
                     console.error('GraphQL error:', result.errors);
+                    setLoaing(false)
                     router.push('/login')
                     return;
                 }
                 setCourses(result.data.getCourses)
                 console.log("Courses fetched:", result.data.getCourses);
+                setLoaing(false)
+
             } catch (err) {
                 console.error('Network or GraphQL error:', err);
+                setLoaing(false)
+
             }
         };
 
@@ -70,9 +76,6 @@ export default function Dashboard() {
 
     }, [router])
 
-    if (loading) {
-        return <p>Loading...</p>;
-    }
 
     return (
         <>
@@ -81,7 +84,7 @@ export default function Dashboard() {
                     <h3>ED-TECH</h3>
                 </div>
                 <div className='btns'>
-                    <button className='bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700' onClick={()=>{router.push('/enrolled')}}>Enrolled</button>
+                    <button className='bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700' onClick={() => { router.push('/enrolled') }}>Enrolled</button>
                     <button onClick={() => { router.push('/login') }} className='bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700'>LogOut</button>
                 </div>
             </div>
@@ -104,24 +107,35 @@ export default function Dashboard() {
                 <div className="course-grid">
 
 
-
-                    {courses.map((crs, index) => {
-                        return (
-                            <div className="course-card" key={index}>
-                                <Image src={crs.image} alt="Course Image" width={100} height={100} unoptimized    />
-                                <div className="course-content">
-                                    <div className="course-title">{crs.title}</div>
-                                    <div className="course-level">{crs.level}</div>
-                                    <div className="course-description">{crs.description || "No description available."}</div>
-                                    <div className="flex gap-4 mt-6">
-                                        <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" onClick={() => router.push(`/course-data/${crs.id}`)}>
-                                            View
-                                        </button>
+                    {loading ?
+                        <>
+                            <div className="loading"></div>
+                        </>
+                        :
+                        <>
+                            {courses.map((crs, index) => {
+                                return (
+                                    <div className="course-card" key={index}>
+                                        <Image src={crs.image} alt="Course Image" width={100} height={100} unoptimized />
+                                        <div className="course-content">
+                                            <div className="course-title">{crs.title}</div>
+                                            <div className="course-level">{crs.level}</div>
+                                            <div className="course-description">{crs.description || "No description available."}</div>
+                                            <div className="flex gap-4 mt-6">
+                                                <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" onClick={() => router.push(`/course-data/${crs.id}`)}>
+                                                    View
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                            </div>
-                        );
-                    })}
+                                );
+                            })}
+                        </>
+
+                    }
+
+
+
 
 
                 </div>

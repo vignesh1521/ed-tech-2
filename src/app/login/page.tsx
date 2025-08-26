@@ -12,10 +12,12 @@ export default function LoginPage() {
 
     const router = useRouter();
     const [email, setEmail] = useState('')
+    const [loading, setLoading] = useState(false);
     const [password, setPassword] = useState('')
     const [errorMessage, setErrorMessage] = useState('')
     const { setUser } = useAuth();
     const handleSubmit = async (e: React.FormEvent) => {
+        setLoading(true)
         e.preventDefault();
         const query = `
         mutation Login($email: String!, $password: String!) {
@@ -42,10 +44,10 @@ export default function LoginPage() {
             }
 
             const token = result.data.login;
-            localStorage.   setItem('token', token);
+            localStorage.setItem('token', token);
             setUser(jwtDecode(token));
             router.push('/dashboard');
-        } catch(err: unknown) {
+        } catch (err: unknown) {
             if (err instanceof Error) {
                 setErrorMessage(err.message || "Something went wrong");
                 console.error('Network or GraphQL error:', err);
@@ -78,7 +80,12 @@ export default function LoginPage() {
                     required
                 />
                 {errorMessage && <span className="err_msg">{errorMessage}</span>}
-                <button type="submit">Login</button>
+                <button type="submit">
+                    {
+                        loading ? <div className="loader_black"></div> : "Login"
+                    }
+
+                </button>
             </form>
         </div>
     )

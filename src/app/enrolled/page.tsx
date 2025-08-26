@@ -128,7 +128,6 @@ export default function Dashboard() {
                 <div className="course-grid">
 
                 {courses.length ===0 ?<><h1>No Enrolled Courese. Return <a className='text-blue-500 hover:underline' onClick={()=>router.push('./dashboard')}>Home</a></h1></>:<></>}
-
                     {courses.map((crs, index) => {
                         return (
                             <div className="course-card" key={index}>

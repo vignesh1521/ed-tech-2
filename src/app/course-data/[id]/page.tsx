@@ -14,9 +14,11 @@ export default function Dashboard() {
         description: string;
         image: string;
     };
-    const { user, loading } = useAuth();
+    const { user } = useAuth();
     const [course, setCourse] = useState<Course | null>(null)
     const [reload, setReload] = useState(1)
+    const [loading, setLoaing] = useState(true);
+    const [loadingBtn, setLoaingBtn] = useState(false);
 
     const router = useRouter();
     const params = useParams();
@@ -31,6 +33,7 @@ export default function Dashboard() {
 
     useEffect(() => {
         const fetchCourseById = async () => {
+            setLoaing(true)
             const query = `
                 query GetCourseById($id: ID!) {
                     getCourseById(id: $id) {
@@ -59,18 +62,23 @@ export default function Dashboard() {
 
                 if (result.errors) {
                     console.error('GraphQL error:', result.errors);
+                    setLoaing(false)
                     return;
                 }
                 setCourse(result.data.getCourseById)
+                setLoaing(false)
+
             } catch (err) {
                 console.error('Network or GraphQL error:', err);
+                setLoaing(false)
             }
         };
 
         fetchCourseById();
-    }, [params?.id,reload])
+    }, [params?.id, reload])
 
     const enrollUser = async () => {
+        setLoaingBtn(true)
         const mutation = `
       mutation EnrollUser( $courseId: ID!) {
         enrollUserInCourse( courseId: $courseId) {
@@ -103,11 +111,15 @@ export default function Dashboard() {
             if (result.errors) {
                 alert(`Enrollment failed: ${result.errors[0].message}`)
                 console.error('Enrollment failed:', result.errors);
+                setLoaingBtn(false)
             } else {
                 router.push(`/course-enrolled/${params?.id}`)
+
             }
         } catch (error) {
             console.error('Network error:', error);
+            setLoaingBtn(false)
+
         }
     };
 
@@ -145,8 +157,8 @@ export default function Dashboard() {
                 alert(`Edit failed: ${result.errors[0].message}`)
                 console.error('Edit failed:', result.errors);
             } else {
-                setReload(reload+1)
-                
+                setReload(reload + 1)
+
 
             }
         } catch (error) {
@@ -156,9 +168,7 @@ export default function Dashboard() {
     }
 
 
-    if (loading) {
-        return <p>Loading..</p>;
-    }
+
 
     return (
         <>
@@ -172,40 +182,53 @@ export default function Dashboard() {
                 </div>
             </div>
             {
-                course && <div className="max-w-7xl mx-auto p-6">
-                    <div className="bg-white shadow-lg rounded-lg overflow-hidden">
-                        <Image
-                            src={course.image}
-                            alt={course.title}
-                            className="w-full h-64 object-cover"
-                            unoptimized
-                            width={100} height={100}
-                        />
+                loading ? <div className='loading'></div> :
+                    <>
+                        {
+                            course && <div className="max-w-7xl mx-auto p-6">
+                                <div className="bg-white shadow-lg rounded-lg overflow-hidden">
+                                    <Image
+                                        src={course.image}
+                                        alt={course.title}
+                                        className="w-full h-64 object-cover"
+                                        unoptimized
+                                        width={100} height={100}
+                                    />
 
-                        <div className="p-6">
-                            <h1 className="text-3xl font-bold text-gray-800 mb-2">{course.title}</h1>
-                            <p className="text-gray-600 mb-4">{course.description}</p>
+                                    <div className="p-6">
+                                        <h1 className="text-3xl font-bold text-gray-800 mb-2">{course.title}</h1>
+                                        <p className="text-gray-600 mb-4">{course.description}</p>
 
-                            <div className="flex gap-4 mt-6">
-                                <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" onClick={enrollUser}>
-                                    Enroll
-                                </button>
-                                {user?.role == 'admin' ? <button onClick={() => handleEdit(course.title)} className="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300">
-                                    Edit
-                                </button> : <></>}
+                                        <div className="flex gap-4 mt-6">
+                                            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" onClick={enrollUser} style={{position:'relative'}}>
+                                                {
+                                                    loadingBtn ? <div className="loader_black" ></div> : "Enroll"
 
-                                <button
-                                    className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800"
-                                    onClick={() => router.push('/dashboard')}
-                                >
-                                    Go Home
-                                </button>
+
+                                                }
+                                            </button>
+                                            {user?.role == 'admin' ? <button onClick={() => handleEdit(course.title)} className="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300">
+                                                Edit
+                                            </button> : <></>}
+
+                                            <button
+                                                className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800"
+                                                onClick={() => router.push('/dashboard')}
+                                            >
+                                                Go Home
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
+                        }
 
+
+                    </>
             }
+
+
+
 
         </>
     );
